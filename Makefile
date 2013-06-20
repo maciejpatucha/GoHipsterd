@@ -1,4 +1,4 @@
-CC=clang
+C=color-gcc
 CFLAGS=-g -c -Werror
 LDFLAGS=-lpthread
 SOURCES=main.c daemonize.c logging.c utils.c GoHipster.c
