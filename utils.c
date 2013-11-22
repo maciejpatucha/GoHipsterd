@@ -93,14 +93,17 @@ int TerminateRecording()
 
 	if (recordingPid == 0)
 	{
+		WriteToLog(0, "raspivid not found in process table");
 		return -1;
 	}
 
-	if (kill(recordingPid, SIGTERM) == -1)
+	if (kill(recordingPid, SIGKILL) == -1)
 	{
 		WriteToLog(1, "Error sending SIGTERM to recording process");
 		return -1;
 	}
+
+	WriteToLog(0, "raspivid killed successfully");
 
 	return 0;
 }

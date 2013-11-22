@@ -1,6 +1,6 @@
 CC=clang
 CFLAGS=-c -Werror
-LDFLAGS=
+LDFLAGS=-lpthread
 SOURCES=main.c daemonize.c logging.c utils.c GoHipster.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=GoHipsterd
