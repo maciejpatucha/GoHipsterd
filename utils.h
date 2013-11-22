@@ -6,5 +6,7 @@
 #include <net/if.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/statvfs.h>
 
 int CheckLink(char *interface);
+unsigned long GetMaxRecordingTime();
