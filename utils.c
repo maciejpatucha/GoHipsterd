@@ -31,7 +31,6 @@
 static unsigned long GetFreeSpace();
 static pid_t FindRunningProcess(const char *procName);
 static char *FileExist(const char *path);
-static char *OutputFileName();
 
 /****************************************************************************************************************************************/
 /*	Function to check if there's working internet connection.																			*/
@@ -107,32 +106,29 @@ int TerminateRecording()
 }
 
 /****************************************************************************************************************************************/
-/*  Prepare string that later will be used to start recording.																			*/
-/*  On success command is returned. On failure function returns NULL.																	*/
+/*  Generate output file name in format: VID_date_time.h264																				*/
+/*  On success function returns pointer to char array containing file name. On failure function returns NULL.							*/
 /****************************************************************************************************************************************/
 
-char *PrepareCommand(unsigned long duration)
+char *OutputFileName()
 {
-	char *command = calloc(256, sizeof(char));
+	time_t rawtime;
+	struct tm *ltime;
 	
-	if (command == NULL)
+	time(&rawtime);
+	ltime = localtime(&rawtime);
+
+	char *dateTimeString = calloc(PATH_MAX, sizeof(char));
+	
+	if (dateTimeString == NULL)
 	{
-		WriteToLog(1, "Unable to allocate memory for command string. Backing off");
+		WriteToLog(1, "Unable to allocate string for filename");
 		return NULL;
 	}
 
-	char *filename = OutputFileName();
-	
-	if (filename == NULL)
-	{
-		return NULL;
-	}
+	snprintf(dateTimeString, PATH_MAX, "/home/pi/Recordings/VID_%d-%d-%d_%d:%d:%d.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->tm_hour, ltime->tm_min, ltime->tm_sec);
 
-	snprintf(command, 256, "raspivid -o /home/pi/Recordings/%s -t %lu -rot 270 -vs -ex antishake -awb auto -ifx none -n", filename, duration);	
-
-	free(filename);
-
-	return command;
+	return dateTimeString;
 }
 
 /****************************************************************************************************************************************/
@@ -233,28 +229,3 @@ static char *FileExist(const char *path)
 	return processName;
 }
 
-/****************************************************************************************************************************************/
-/*  Generate output file name in format: VID_date_time.h264																				*/
-/*  On success function returns pointer to char array containing file name. On failure function returns NULL.							*/
-/****************************************************************************************************************************************/
-
-static char *OutputFileName()
-{
-	time_t rawtime;
-	struct tm *ltime;
-	
-	time(&rawtime);
-	ltime = localtime(&rawtime);
-
-	char *dateTimeString = calloc(NAME_MAX, sizeof(char));
-	
-	if (dateTimeString == NULL)
-	{
-		WriteToLog(1, "Unable to allocate string for filename");
-		return NULL;
-	}
-
-	snprintf(dateTimeString, NAME_MAX, "VID_%d-%d-%d_%d:%d:%d.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->tm_hour, ltime->tm_min, ltime->tm_sec);
-
-	return dateTimeString;
-}

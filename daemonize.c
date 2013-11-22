@@ -1,5 +1,15 @@
-#include "daemonize.h"
+#include <stdio.h>
+#include <stdbool.h>
+#include <errno.h>
+#include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
+#include "logging.h"
+#include "daemonize.h"
+#include "GoHipster.h"
 
 /****************************************************************************************************************************************/
 /*  Function to exit in case of error while deamonising.																				*/
@@ -71,8 +81,5 @@ void daemonise()
 		die("failed to reopen stderr while daemonising");
 	}
 
-	while (1)
-	{
-		WriteToLog(0,"BlaBlaBlaBlaBla");
-	}
+	mainloop();
 }

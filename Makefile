@@ -1,7 +1,7 @@
 CC=clang
 CFLAGS=-c -Werror
 LDFLAGS=
-SOURCES=main.c daemonize.c logging.c utils.c
+SOURCES=main.c daemonize.c logging.c utils.c GoHipster.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=GoHipsterd
 
