@@ -7,6 +7,7 @@
 static unsigned long GetFreeSpace();
 static pid_t FindRunningProcess(const char *procName);
 static char *FileExist(const char *path);
+static char *OutputFileName();
 
 int CheckLink(char *interface)
 {
@@ -61,6 +62,30 @@ int TerminateRecording()
 	}
 
 	return 0;
+}
+
+char *PrepareCommand(unsigned int duration)
+{
+	char *command = calloc(256, sizeof(char));
+	
+	if (command == NULL)
+	{
+		WriteToLog(1, "Unable to allocate memory for command string. Backing off");
+		return NULL;
+	}
+
+	char *filename = OutputFileName();
+	
+	if (filename == NULL)
+	{
+		return NULL;
+	}
+
+	snprintf(command, 256, "raspivid -o %s -t %lu -rot 270 -vs -ex antishake -awb auto -ifx none -n", filename, duration);	
+
+	free(filename);
+
+	return command;
 }
 
 static unsigned long GetFreeSpace()
@@ -144,4 +169,25 @@ static char *FileExist(const char *path)
 	fclose(fd);
 
 	return processName;
+}
+
+static char *OutputFileName()
+{
+	time_t rawtime;
+	struct tm *ltime;
+	
+	time(&rawtime);
+	ltime = localtime(&rawtime);
+
+	char *dateTimeString = calloc(NAME_MAX, sizeof(char));
+	
+	if (dateTimeString == NULL)
+	{
+		WriteToLog(1, "Unable to allocate string for filename");
+		return NULL;
+	}
+
+	snprintf(dateTimeString, NAME_MAX, "VID_%s-%s-%s_%s:%s:%s.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->hour, ltime->min, ltime->sec);
+
+	return dateTimeString;
 }
