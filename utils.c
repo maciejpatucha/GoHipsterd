@@ -2,9 +2,11 @@
 #include "logging.h"
 
 #define ONE_MINUTE_VIDEO_LENGTH 56
-#define MILLISECONDS 1000
+#define MILLISECONDS 60000
 
 static unsigned long GetFreeSpace();
+static pid_t FindRunningProcess(const char *procName);
+static char *FileExist(const char *path);
 
 int CheckLink(char *interface)
 {
@@ -12,7 +14,7 @@ int CheckLink(char *interface)
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock < 0)
 	{
-		fprintf(stderr, "Socket failed: %d\n", errno);
+		WriteToLog(1,"Failed to create socket");
 		return -1;
 	}
 
@@ -23,7 +25,7 @@ int CheckLink(char *interface)
 
 	if (rv == -1)
 	{
-		fprintf(stderr, "Ioctl failed: %d\n", errno);
+		WriteToLog(1,"Ioctl failed");
 		return -1;
 	}
 
@@ -40,7 +42,25 @@ unsigned long GetMaxRecordingTime()
 
 	unsigned long minutes_of_recording = (free_space / (ONE_MINUTE_VIDEO_LENGTH *2));
 
-	return (minutes_of_recording);
+	return (minutes_of_recording * MILLISECONDS);
+}
+
+int TerminateRecording()
+{
+	pid_t recordingPid = FindRunningProcess("GoHipsterd");
+
+	if (recordingPid == 0)
+	{
+		return -1;
+	}
+
+	if (kill(recordingPid, SIGTERM) == -1)
+	{
+		WriteToLog(1, "Error sending SIGTERM to recording process");
+		return -1;
+	}
+
+	return 0;
 }
 
 static unsigned long GetFreeSpace()
@@ -60,8 +80,68 @@ static unsigned long GetFreeSpace()
 	return (unsigned long)total_free_MB;
 }
 
-int main()
+static pid_t FindRunningProcess(const char *procName)
 {
-	printf("Maximum video length in minutes: %lu\n", GetMaxRecordingTime()); 
+	DIR *dir = opendir("/proc");
+
+	if (dir == NULL)
+	{
+		WriteToLog(1, "Cannot open proc directory to read");
+		return 0;
+	}
+
+	struct dirent *currdir;
+
+	while ((currdir = readdir(dir)) != NULL)
+	{	
+		char *processName = FileExist(currdir->d_name);
+		
+		if (processName == NULL)
+		{
+			continue;
+		}
+
+		if (strncmp(processName, procName, 10) == 0)
+		{
+			free(processName);
+			unsigned int pid = (unsigned int) atoi(currdir->d_name);
+			return pid;
+		}
+
+		free(processName);
+	}
+
 	return 0;
+}
+
+static char *FileExist(const char *path)
+{
+	char buffer[PATH_MAX] = { 0 };
+	struct stat file;
+
+	snprintf(buffer, PATH_MAX, "%s/comm", path);
+
+	if (stat(buffer, &file) == -1)
+	{
+		return NULL;
+	}
+
+	char *processName = calloc(256, sizeof(char));
+
+	if (processName == NULL)
+	{
+		return NULL;
+	}
+
+	FILE *fd = fopen(buffer, "r+");
+
+	if (fd == NULL)
+	{
+		return NULL;
+	}
+
+	fscanf(fd, "%s", processName);
+	fclose(fd);
+
+	return processName;
 }
