@@ -1,13 +1,44 @@
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/statvfs.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <time.h>
+
 #include "utils.h"
 #include "logging.h"
 
-#define ONE_MINUTE_VIDEO_LENGTH 56
+/****************************************************************************************************************************************/
+/*  Video is recorded with following settings:																							*/
+/*  Resolution: 1920x1080																												*/
+/*  Fps: 30																																*/
+/*  Bitrate: 8000000																													*/
+/*  One minute of a video recording with those settings requires 56 MB of free disk space. This is a basic unit used to calculate		*/
+/*  maximum time of recording.																											*/
+/****************************************************************************************************************************************/
+
+#define ONE_MINUTE_VIDEO_LENGTH 56 
 #define MILLISECONDS 60000
 
 static unsigned long GetFreeSpace();
 static pid_t FindRunningProcess(const char *procName);
 static char *FileExist(const char *path);
 static char *OutputFileName();
+
+/****************************************************************************************************************************************/
+/*	Function to check if there's working internet connection.																			*/
+/*  If IFF_UP is set than it means that network interface is up.																		*/
+/*	IFF_RUNNING indicates that network cable is plugged in.																				*/
+/*  If there's working connection 1 will be returned. 0 will be returned if there's no working connection. On failure -1 is returned.   */
+/****************************************************************************************************************************************/
 
 int CheckLink(char *interface)
 {
@@ -33,6 +64,12 @@ int CheckLink(char *interface)
 	return (if_req.ifr_flags & IFF_UP) && (if_req.ifr_flags & IFF_RUNNING);
 }
 
+/****************************************************************************************************************************************/
+/*  Function to determine maximum time of recording based on available space.															*/
+/*  We'll use only half of the available space for recording to be able to compress video later into mp4								*/
+/*  On success recording time in milliseconds is returend. On failure 0 is returned.													*/
+/****************************************************************************************************************************************/
+
 unsigned long GetMaxRecordingTime()
 {
 	unsigned long free_space;
@@ -46,9 +83,14 @@ unsigned long GetMaxRecordingTime()
 	return (minutes_of_recording * MILLISECONDS);
 }
 
+/****************************************************************************************************************************************/
+/*  Terminate currently running recording process.																						*/
+/*  On success 0 is returned. On failure -1 is returned.																				*/
+/****************************************************************************************************************************************/
+
 int TerminateRecording()
 {
-	pid_t recordingPid = FindRunningProcess("GoHipsterd");
+	pid_t recordingPid = FindRunningProcess("raspivid");
 
 	if (recordingPid == 0)
 	{
@@ -64,7 +106,12 @@ int TerminateRecording()
 	return 0;
 }
 
-char *PrepareCommand(unsigned int duration)
+/****************************************************************************************************************************************/
+/*  Prepare string that later will be used to start recording.																			*/
+/*  On success command is returned. On failure function returns NULL.																	*/
+/****************************************************************************************************************************************/
+
+char *PrepareCommand(unsigned long duration)
 {
 	char *command = calloc(256, sizeof(char));
 	
@@ -81,12 +128,17 @@ char *PrepareCommand(unsigned int duration)
 		return NULL;
 	}
 
-	snprintf(command, 256, "raspivid -o %s -t %lu -rot 270 -vs -ex antishake -awb auto -ifx none -n", filename, duration);	
+	snprintf(command, 256, "raspivid -o /home/pi/Recordings/%s -t %lu -rot 270 -vs -ex antishake -awb auto -ifx none -n", filename, duration);	
 
 	free(filename);
 
 	return command;
 }
+
+/****************************************************************************************************************************************/
+/*  Get available space.																												*/
+/*  On success total free space in MB is returned. On failure 0 is returned.															*/
+/****************************************************************************************************************************************/
 
 static unsigned long GetFreeSpace()
 {
@@ -104,6 +156,11 @@ static unsigned long GetFreeSpace()
 
 	return (unsigned long)total_free_MB;
 }
+
+/****************************************************************************************************************************************/
+/*  Scan /proc directory looking for process specified in procName.																		*/
+/*  On success function returns pid of raspivid process. On failure 0 is returned.														*/
+/****************************************************************************************************************************************/
 
 static pid_t FindRunningProcess(const char *procName)
 {
@@ -139,6 +196,11 @@ static pid_t FindRunningProcess(const char *procName)
 	return 0;
 }
 
+/****************************************************************************************************************************************/
+/*  Check if file comm exists in path specified in path parameter.																		*/
+/*  On success function returns process name read from comm file. On failure function returns NULL.										*/
+/****************************************************************************************************************************************/
+
 static char *FileExist(const char *path)
 {
 	char buffer[PATH_MAX] = { 0 };
@@ -171,6 +233,11 @@ static char *FileExist(const char *path)
 	return processName;
 }
 
+/****************************************************************************************************************************************/
+/*  Generate output file name in format: VID_date_time.h264																				*/
+/*  On success function returns pointer to char array containing file name. On failure function returns NULL.							*/
+/****************************************************************************************************************************************/
+
 static char *OutputFileName()
 {
 	time_t rawtime;
@@ -187,7 +254,7 @@ static char *OutputFileName()
 		return NULL;
 	}
 
-	snprintf(dateTimeString, NAME_MAX, "VID_%s-%s-%s_%s:%s:%s.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->hour, ltime->min, ltime->sec);
+	snprintf(dateTimeString, NAME_MAX, "VID_%d-%d-%d_%d:%d:%d.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->tm_hour, ltime->tm_min, ltime->tm_sec);
 
 	return dateTimeString;
 }

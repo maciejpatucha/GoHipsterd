@@ -1,5 +1,9 @@
 #include "logging.h"
 
+/****************************************************************************************************************************************/
+/*  Function to write to syslog. level is used to indicate whether it's just information or an error.									*/
+/****************************************************************************************************************************************/
+
 void WriteToLog(int level, char *message)
 {
 	openlog("GoHipsterd", LOG_PID, LOG_USER);
@@ -13,4 +17,6 @@ void WriteToLog(int level, char *message)
 			syslog(LOG_ERR, "%s", message);
 			break;
 	};
+
+	closelog();
 }
