@@ -25,7 +25,7 @@ static void die(char *msg)
 /*  Function to daemonise.																												*/
 /****************************************************************************************************************************************/
 
-void daemonise()
+void daemonise(void)
 {
 	pid_t pid = fork();
 	if (pid == -1)

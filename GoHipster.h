@@ -1,1 +1,1 @@
-void mainloop();
+void mainloop(void);

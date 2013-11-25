@@ -1,1 +1,1 @@
-void daemonise();
+void daemonise(void);

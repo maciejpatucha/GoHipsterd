@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "utils.h"
 #include "logging.h"
@@ -28,9 +29,10 @@
 #define ONE_MINUTE_VIDEO_LENGTH 56 
 #define MILLISECONDS 60000
 
-static unsigned long GetFreeSpace();
+static unsigned long GetFreeSpace(void);
 static pid_t FindRunningProcess(const char *procName);
 static char *FileExist(const char *path);
+static bool IsRawVideoFile(char *file);
 
 /****************************************************************************************************************************************/
 /*	Function to check if there's working internet connection.																			*/
@@ -69,7 +71,7 @@ int CheckLink(char *interface)
 /*  On success recording time in milliseconds is returend. On failure 0 is returned.													*/
 /****************************************************************************************************************************************/
 
-unsigned long GetMaxRecordingTime()
+unsigned long GetMaxRecordingTime(void)
 {
 	unsigned long free_space;
 	if ((free_space = GetFreeSpace()) == 0)
@@ -87,7 +89,7 @@ unsigned long GetMaxRecordingTime()
 /*  On success 0 is returned. On failure -1 is returned.																				*/
 /****************************************************************************************************************************************/
 
-int TerminateRecording()
+int TerminateRecording(void)
 {
 	pid_t recordingPid = FindRunningProcess("raspivid");
 
@@ -112,7 +114,7 @@ int TerminateRecording()
 /*  On success function returns pointer to char array containing file name. On failure function returns NULL.							*/
 /****************************************************************************************************************************************/
 
-char *OutputFileName()
+char *OutputFileName(void)
 {
 	time_t rawtime;
 	struct tm *ltime;
@@ -128,9 +130,82 @@ char *OutputFileName()
 		return NULL;
 	}
 
-	snprintf(dateTimeString, PATH_MAX, "/home/pi/Recordings/VID_%d-%d-%d_%d:%d:%d.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->tm_hour, ltime->tm_min, ltime->tm_sec);
+	snprintf(dateTimeString, PATH_MAX, "/home/pi/Recordings/VID_%d-%d-%d_%d-%d-%d.h264", ltime->tm_year, ltime->tm_mon, ltime->tm_mday, ltime->tm_hour, ltime->tm_min, ltime->tm_sec);
 
 	return dateTimeString;
+}
+
+char *GetFileToConvert(void)
+{
+	DIR *dir = opendir("/home/pi/Recordings");
+
+	if (dir == NULL)
+	{
+		WriteToLog(1, "Cannot open directory");
+		return NULL;
+	}
+
+	struct dirent *currdir;
+
+	while ((currdir = readdir(dir)) != NULL)
+	{
+		if ((currdir->d_type == DT_DIR) || (!strncmp(currdir->d_name, ".", 1)) || (!strncmp(currdir->d_name, "..", 2)))
+		{
+			continue;
+		}
+
+		if (!IsRawVideoFile(currdir->d_name))
+		{
+			continue;
+		}
+
+		char *fileToConvert = calloc(PATH_MAX, sizeof(char));
+
+		if (fileToConvert == NULL)
+		{
+			WriteToLog(1, "Cannot allocate memory for fileToConvert");
+			closedir(dir);
+			return NULL;
+		}
+
+		snprintf(fileToConvert, PATH_MAX, "/home/pi/Recordings/%s", currdir->d_name);
+		closedir(dir);
+		return fileToConvert;
+	}
+	closedir(dir);
+
+	return NULL;
+}
+
+char *ConvertOutputFileName(char *filename)
+{
+	int length = strlen(filename);
+	
+	char *convFileName = calloc(length, sizeof(char));
+
+	if (convFileName == NULL)
+	{
+		WriteToLog(0, "Unable to allocate memory for convFileName");
+		return NULL;
+	}
+
+	
+	int amount = strstr(filename, "h264") - filename;
+
+	strncpy(convFileName, filename, amount);
+	strncat(convFileName, "mp4", 3);
+
+	return convFileName;
+}
+
+static bool IsRawVideoFile(char *file)
+{
+	if (strstr(file, "h264") == NULL)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 /****************************************************************************************************************************************/
@@ -138,7 +213,7 @@ char *OutputFileName()
 /*  On success total free space in MB is returned. On failure 0 is returned.															*/
 /****************************************************************************************************************************************/
 
-static unsigned long GetFreeSpace()
+static unsigned long GetFreeSpace(void)
 {
 	struct statvfs vfsbuffer;
 
