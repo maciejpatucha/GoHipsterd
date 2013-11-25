@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-c -Werror
+CFLAGS=-g -c -Werror
 LDFLAGS=-lpthread
 SOURCES=main.c daemonize.c logging.c utils.c GoHipster.c
 OBJECTS=$(SOURCES:.c=.o)

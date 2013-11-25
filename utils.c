@@ -93,7 +93,6 @@ int TerminateRecording()
 
 	if (recordingPid == 0)
 	{
-		WriteToLog(0, "raspivid not found in process table");
 		return -1;
 	}
 
@@ -175,6 +174,11 @@ static pid_t FindRunningProcess(const char *procName)
 
 	while ((currdir = readdir(dir)) != NULL)
 	{	
+		if ((currdir->d_type !=DT_DIR) || (!strncmp(currdir->d_name, ".", 1)) || (!strncmp(currdir->d_name, "..", 2)))
+		{
+			continue;
+		}
+
 		char *processName = FileExist(currdir->d_name);
 		
 		if (processName == NULL)
@@ -186,11 +190,14 @@ static pid_t FindRunningProcess(const char *procName)
 		{
 			free(processName);
 			unsigned int pid = (unsigned int) atoi(currdir->d_name);
+			closedir(dir);
 			return pid;
 		}
 
 		free(processName);
 	}
+	
+	closedir(dir);
 
 	return 0;
 }
@@ -205,7 +212,7 @@ static char *FileExist(const char *path)
 	char buffer[PATH_MAX] = { 0 };
 	struct stat file;
 
-	snprintf(buffer, PATH_MAX, "%s/comm", path);
+	snprintf(buffer, PATH_MAX, "/proc/%s/comm", path);
 
 	if (stat(buffer, &file) == -1)
 	{
