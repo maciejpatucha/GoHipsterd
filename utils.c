@@ -26,7 +26,8 @@
 /*  maximum time of recording.																											*/
 /****************************************************************************************************************************************/
 
-#define ONE_MINUTE_VIDEO_LENGTH 56 
+#define ONE_MINUTE_VIDEO_LENGTH_8MBS 57
+#define ONE_MINUTE_VIDEO_LENGTH_4MBS 29
 #define MILLISECONDS 60000
 
 static unsigned long GetFreeSpace(void);
@@ -79,7 +80,7 @@ unsigned long GetMaxRecordingTime(void)
 		return 0;
 	}
 
-	unsigned long minutes_of_recording = (free_space / (ONE_MINUTE_VIDEO_LENGTH *2));
+	unsigned long minutes_of_recording = (free_space / (ONE_MINUTE_VIDEO_LENGTH_4MBS * 2));
 
 	return (minutes_of_recording * MILLISECONDS);
 }
