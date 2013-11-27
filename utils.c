@@ -28,6 +28,7 @@
 
 #define ONE_MINUTE_VIDEO_LENGTH_8MBS 57
 #define ONE_MINUTE_VIDEO_LENGTH_4MBS 29
+#define ONE_MINUTE_VIDEO_LENGTH_17MBS 122
 #define MILLISECONDS 60000
 
 static unsigned long GetFreeSpace(void);
