@@ -15,6 +15,7 @@ void *ConvertThread(void *param);
 
 bool recordingOn;
 bool convert;
+bool convertInProgress;
 
 /****************************************************************************************************************************************/
 /*  Main loop of the app.																												*/
@@ -28,6 +29,7 @@ void mainloop(void)
 
 	recordingOn = false;
 	convert = false;
+	convertInProgress = false;
 
 	if (pthread_create(&recordingThread, NULL, RecordingThread, NULL) == -1)
 	{
@@ -83,16 +85,19 @@ void *ConvertThread(void *param)
 	{
 		nanosleep(&req, &rem);
 
-		if (!convert || recordingOn)
+		if (!convert || recordingOn || convertInProgress)
 		{
 			continue;
 		}
 		
+		convertInProgress = true;
+
 		char *inputFile = GetFileToConvert();
 		
 		if (inputFile == NULL)
 		{
 			convert = false;
+			convertInProgress = false;
 			continue;
 		}
 
@@ -105,6 +110,7 @@ void *ConvertThread(void *param)
 
 		if (outputFile == NULL)
 		{
+			convertInProgress = false;
 			free(inputFile);
 			continue;
 		}
@@ -132,6 +138,7 @@ void *ConvertThread(void *param)
 
 			if (WEXITSTATUS(status) == 0)
 			{
+				convertInProgress = false;
 				unlink(input);
 			}
 		}
@@ -172,7 +179,7 @@ void *NetworkThread(void *param)
 					recordingOn = false;
 					convert = true;
 				}
-				else
+				else if (!convertInProgress)
 				{
 					convert=true;
 				}
