@@ -1,9 +1,9 @@
 C=clang
 CFLAGS=-g -c -Werror
 LDFLAGS=-lpthread
-SOURCES=main.c daemonize.c logging.c utils.c GoHipster.c
+SOURCES=main.c daemonize.c logging.c utils.c GoRaspberry.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=GoHipsterd
+EXECUTABLE=GoRaspberryd
 
 all: $(SOURCES) $(EXECUTABLE)
 	
@@ -12,6 +12,12 @@ $(EXECUTABLE): $(OBJECTS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $< -o $@
+
+install:
+	cp $(EXECUTABLE) /usr/sbin/$(EXECUTABLE)
+
+uninstall:
+	rm -f /usr/sbin/$(EXECUTABLE)
 
 .PHONY: clean
 
