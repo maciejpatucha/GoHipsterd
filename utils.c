@@ -29,6 +29,7 @@
 #define ONE_MINUTE_VIDEO_LENGTH_8MBS 57
 #define ONE_MINUTE_VIDEO_LENGTH_4MBS 29
 #define ONE_MINUTE_VIDEO_LENGTH_17MBS 122
+#define ONE_MINUTE_LOW_QUALITY 12
 #define MILLISECONDS 60000
 
 static unsigned long GetFreeSpace(void);
@@ -81,7 +82,7 @@ unsigned long GetMaxRecordingTime(void)
 		return 0;
 	}
 
-	unsigned long minutes_of_recording = (free_space / (ONE_MINUTE_VIDEO_LENGTH_4MBS * 2));
+	unsigned long minutes_of_recording = (free_space / (ONE_MINUTE_LOW_QUALITY));
 
 	return (minutes_of_recording * MILLISECONDS);
 }
@@ -227,7 +228,7 @@ static unsigned long GetFreeSpace(void)
 
 	long long total_free_space = (long long)vfsbuffer.f_bsize * (long long)vfsbuffer.f_bavail;
 
-	long long total_free_MB = total_free_space/(long long)(1024*1024);
+	long long total_free_MB = total_free_space/(long long)(1023*1024);
 
 	return (unsigned long)total_free_MB;
 }

@@ -129,7 +129,7 @@ void *ConvertThread(void *param)
 		}
 		else if (convertPid == 0)
 		{
-			execl("/usr/bin/MP4Box", "MP4Box", "-fps", "30", "-add", input, output);
+			execl("/usr/bin/MP4Box", "MP4Box", "-fps", "25", "-add", input, output);
 		}
 		else if (convertPid > 0)
 		{
@@ -250,7 +250,7 @@ void *RecordingThread(void *param)
 	
 			snprintf(durationStr, 64, "%lu", maxTime);
 
-			execl("/usr/bin/raspivid","raspivid", "-o", fileName, "-t", durationStr, "-vs", "-rot", rotation, "-ex", "antishake", "-awb", "auto", "-ifx", "none", "-b", "8000000", NULL);
+			execl("/usr/bin/raspivid","raspivid", "-o", fileName, "-t", durationStr, "-vs", "-rot", rotation, "-ex", "antishake", "-awb", "auto", "-ifx", "none", "-b", "2000000", "-fps", "25", NULL);
 		}
 		else if (raspividPid > 0)
 		{

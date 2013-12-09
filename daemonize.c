@@ -9,7 +9,7 @@
 
 #include "logging.h"
 #include "daemonize.h"
-#include "GoHipster.h"
+#include "GoRaspberry.h"
 
 /****************************************************************************************************************************************/
 /*  Function to exit in case of error while deamonising.																				*/
