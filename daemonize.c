@@ -2,7 +2,6 @@
 #include <sys/types.h>
 
 #include "common_headers.h"
-#include "logging.h"
 #include "daemonize.h"
 #include "GoRaspberry.h"
 
