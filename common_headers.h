@@ -9,6 +9,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <linux/limits.h>
 
 #include "logging.h"
 #endif // COMMON_HEADERS_H

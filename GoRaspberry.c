@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <pthread.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "common_headers.h"
 #include "logging.h"
-#include "utils.h"
+#include "recordingutils.h"
+#include "networkutils.h"
+#include "convertutils.h"
+#include "processutils.h"
 
 void *RecordingThread(void *param);
 void *NetworkThread(void *param);

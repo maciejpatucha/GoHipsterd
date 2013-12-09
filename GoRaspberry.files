@@ -13,3 +13,7 @@ processutils.h
 processutils.c
 networkutils.h
 networkutils.c
+recordingutils.c
+recordingutils.h
+convertutils.h
+convertutils.c
