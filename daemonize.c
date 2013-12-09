@@ -1,12 +1,7 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <unistd.h>
-#include <signal.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
+#include "common_headers.h"
 #include "logging.h"
 #include "daemonize.h"
 #include "GoRaspberry.h"
