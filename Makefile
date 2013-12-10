@@ -1,7 +1,7 @@
 C=clang
 CFLAGS=-g -c -Werror
 LDFLAGS=-lpthread
-SOURCES=main.c daemonize.c logging.c recordingutils.c GoRaspberry.c processutils.c networkutils.c convertutils.c
+SOURCES=main.c daemonize.c logging.c recordingutils.c GoRaspberry.c processutils.c networkutils.c convertutils.c configuration.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=GoRaspberryd
 
