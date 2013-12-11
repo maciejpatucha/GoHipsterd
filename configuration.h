@@ -35,5 +35,6 @@ typedef struct
 Configuration *ReadConfiguration(const char *config_path);
 int UpdateConfiguration(const char *config_path, Configuration *config);
 void FreeConfiguration(Configuration *config);
+void RestoreDefaultConfiguration(void);
 
 #endif // CONFIGURATION_H

@@ -17,3 +17,7 @@ recordingutils.c
 recordingutils.h
 convertutils.h
 convertutils.c
+configuration.h
+configuration.c
+locking.h
+locking.c

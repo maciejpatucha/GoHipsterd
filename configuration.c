@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "configuration.h"
+#include "logging.h"
 
 Configuration *ReadConfiguration(const char *config_path)
 {
@@ -12,7 +13,7 @@ Configuration *ReadConfiguration(const char *config_path)
 
     if (config == NULL)
     {
-        fprintf(stderr, "Failed to allocate memory for Configuration structure: %s\n", strerror(errno));
+        WriteToLog(1, "Unable to allocate memeory for configuration struct.");
         return NULL;
     }
 
@@ -20,7 +21,7 @@ Configuration *ReadConfiguration(const char *config_path)
 
     if (config_file == NULL)
     {
-        fprintf(stderr, "Failed to open config.dat file: %s\n", strerror(errno));
+        WriteToLog(1, "Unable to open configuration file.");
         return NULL;
     }
 
@@ -43,7 +44,6 @@ int UpdateConfiguration(const char *config_path, Configuration *config)
 {
     if (config == NULL)
     {
-        fprintf(stderr, "No configuration specified!!!\n");
         return 1;
     }
 
@@ -51,7 +51,6 @@ int UpdateConfiguration(const char *config_path, Configuration *config)
 
     if (config_file == NULL)
     {
-        fprintf(stderr, "Unable to open config.dat to write configuration!!!\n");
         return 1;
     }
 
@@ -72,4 +71,27 @@ int UpdateConfiguration(const char *config_path, Configuration *config)
 void FreeConfiguration(Configuration *config)
 {
     free(config);
+}
+
+void RestoreDefaultConfiguration(void)
+{
+    Configuration *config = calloc(1, sizeof(Configuration));
+
+    if (config == NULL)
+    {
+        WriteToLog(1, "Unable to allocate memory for Configuration struct.");
+        return;
+    }
+
+    config->res.width = 1280;
+    config->res.height = 720;
+    config->quality = medium;
+    config->fps = 25;
+    config->autostart = true;
+    config->rotation = 270;
+    config->defaultAction = video;
+
+    UpdateConfiguration("/etc/goraspberry/config.dat", config);
+
+    FreeConfiguration(config);
 }
